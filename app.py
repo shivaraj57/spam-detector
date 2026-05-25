@@ -5,20 +5,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score
 
-# ---------------- PAGE ----------------
-st.set_page_config(
-    page_title="Spam Detector",
-    page_icon="📩",
-    layout="centered"
-)
+# PAGE
+st.set_page_config(page_title="Spam Detector", page_icon="📩", layout="centered")
 
-# ---------------- DATA ----------------
+# DATA
 df = pd.read_csv("spam.csv", encoding="latin-1")
 df = df[['v1', 'v2']]
 df.columns = ['label', 'message']
 df['label'] = df['label'].map({'ham': 0, 'spam': 1})
 
-# ---------------- MODEL ----------------
+# MODEL
 vectorizer = TfidfVectorizer()
 X = vectorizer.fit_transform(df['message'])
 y = df['label']
@@ -32,138 +28,72 @@ model.fit(X_train, y_train)
 
 accuracy = accuracy_score(y_test, model.predict(X_test))
 
-# ---------------- CSS ----------------
+# STYLE
 st.markdown("""
 <style>
-
-.stApp {
-    background: #050816;
+.stApp{
+    background: linear-gradient(135deg,#030712,#0f172a);
 }
 
-/* glowing background blobs */
-.stApp::before{
-content:'';
-position:fixed;
-width:420px;
-height:420px;
-border-radius:50%;
-background:#00e5ff;
-filter: blur(150px);
-top:-120px;
-left:-120px;
-opacity:0.25;
-z-index:-1;
-}
-
-.stApp::after{
-content:'';
-position:fixed;
-width:420px;
-height:420px;
-border-radius:50%;
-background:#8b5cf6;
-filter: blur(150px);
-bottom:-120px;
-right:-120px;
-opacity:0.25;
-z-index:-1;
-}
-
-/* title */
 .title{
-font-size:64px;
-font-weight:900;
-text-align:center;
-color:white;
-text-shadow:
-0 0 10px #00e5ff,
-0 0 25px #00e5ff,
-0 0 40px #8b5cf6;
-animation:pulse 2s infinite alternate;
-margin-bottom:10px;
+    text-align:center;
+    font-size:60px;
+    font-weight:900;
+    color:white;
+    text-shadow:0 0 18px #00e5ff;
 }
 
-/* animation */
-@keyframes pulse{
-from{transform:scale(1);}
-to{transform:scale(1.03);}
+.acc{
+    text-align:center;
+    font-size:24px;
+    color:white;
+    padding:15px;
+    border-radius:16px;
+    background:rgba(255,255,255,0.05);
+    margin-bottom:20px;
 }
 
-.sub{
-text-align:center;
-font-size:20px;
-color:#cbd5e1;
-margin-bottom:25px;
-}
-
-/* glass card */
-.acc-box{
-background: rgba(255,255,255,0.05);
-border:1px solid rgba(255,255,255,0.1);
-backdrop-filter: blur(14px);
-padding:18px;
-border-radius:18px;
-text-align:center;
-font-size:28px;
-color:white;
-box-shadow: 0 0 30px rgba(0,229,255,.15);
-margin-bottom:20px;
-}
-
-/* textarea */
-textarea{
-background: rgba(255,255,255,0.05) !important;
-color:white !important;
-border-radius:18px !important;
-border:1px solid rgba(255,255,255,0.1) !important;
-}
-
-/* button */
 .stButton>button{
-width:100%;
-padding:14px;
-font-size:22px;
-font-weight:bold;
-border:none;
-border-radius:16px;
-color:white;
-background: linear-gradient(90deg,#06b6d4,#3b82f6,#9333ea);
-box-shadow:0 0 25px rgba(59,130,246,.45);
-transition:0.3s;
+    width:100%;
+    border-radius:14px;
+    font-size:22px;
+    background:linear-gradient(90deg,#06b6d4,#8b5cf6);
+    color:white;
+    border:none;
+    padding:14px;
 }
 
-.stButton>button:hover{
-transform:scale(1.03);
-box-shadow:0 0 45px rgba(147,51,234,.6);
+.popup{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:420px;
+    padding:35px;
+    border-radius:22px;
+    background:#111827;
+    color:white;
+    text-align:center;
+    z-index:9999;
+    box-shadow:0 0 50px rgba(0,229,255,.35);
+    animation: pop 0.35s ease;
 }
 
-/* result box */
-.result{
-padding:22px;
-border-radius:18px;
-font-size:30px;
-font-weight:bold;
-text-align:center;
-margin-top:25px;
-box-shadow:0 0 30px rgba(255,255,255,.15);
+@keyframes pop{
+    from{opacity:0;transform:translate(-50%,-50%) scale(.7);}
+    to{opacity:1;transform:translate(-50%,-50%) scale(1);}
 }
-
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- UI ----------------
+# UI
 st.markdown(
     '<div class="title">📩 SPAM DETECTOR</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="sub">Detect Email & SMS Spam Instantly using Machine Learning</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    f'<div class="acc-box">🎯 Model Accuracy: {accuracy*100:.2f}%</div>',
+    f'<div class="acc">🎯 Accuracy: {accuracy*100:.2f}%</div>',
     unsafe_allow_html=True
 )
 
@@ -175,17 +105,19 @@ message = st.text_area(
 
 if st.button("🚀 Check Message"):
     if message.strip():
-        prediction = model.predict(
-            vectorizer.transform([message])
-        )[0]
+        pred = model.predict(vectorizer.transform([message]))[0]
 
-        if prediction == 1:
-            st.markdown(
-                '<div class="result" style="background:#3f0d1a;color:#fb7185;">🚨 SPAM MESSAGE</div>',
-                unsafe_allow_html=True
-            )
+        if pred == 1:
+            st.markdown("""
+            <div class="popup">
+            <h1>🚨 SPAM MESSAGE</h1>
+            <p>This message looks suspicious.</p>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.markdown(
-                '<div class="result" style="background:#052e16;color:#4ade80;">✅ NOT SPAM</div>',
-                unsafe_allow_html=True
-            )
+            st.markdown("""
+            <div class="popup">
+            <h1>✅ NOT SPAM</h1>
+            <p>This message appears safe.</p>
+            </div>
+            """, unsafe_allow_html=True)
