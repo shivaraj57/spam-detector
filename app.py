@@ -28,78 +28,61 @@ model.fit(X_train, y_train)
 
 accuracy = accuracy_score(y_test, model.predict(X_test))
 
+# SESSION
+if "show_popup" not in st.session_state:
+    st.session_state.show_popup = False
+
+if "popup_message" not in st.session_state:
+    st.session_state.popup_message = ""
+
 # STYLE
 st.markdown("""
 <style>
 .stApp{
-    background: linear-gradient(135deg,#030712,#0f172a);
+background: linear-gradient(135deg,#030712,#0f172a);
 }
 
 .title{
-    text-align:center;
-    font-size:60px;
-    font-weight:900;
-    color:white;
-    text-shadow:0 0 18px #00e5ff;
+text-align:center;
+font-size:58px;
+font-weight:900;
+color:white;
+text-shadow:0 0 20px #00e5ff;
 }
 
 .acc{
-    text-align:center;
-    font-size:24px;
-    color:white;
-    padding:15px;
-    border-radius:16px;
-    background:rgba(255,255,255,0.05);
-    margin-bottom:20px;
+text-align:center;
+font-size:24px;
+color:white;
+padding:15px;
+border-radius:16px;
+background:rgba(255,255,255,0.05);
+margin-bottom:20px;
 }
 
 .stButton>button{
-    width:100%;
-    border-radius:14px;
-    font-size:22px;
-    background:linear-gradient(90deg,#06b6d4,#8b5cf6);
-    color:white;
-    border:none;
-    padding:14px;
-}
-
-.popup{
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    width:420px;
-    padding:35px;
-    border-radius:22px;
-    background:#111827;
-    color:white;
-    text-align:center;
-    z-index:9999;
-    box-shadow:0 0 50px rgba(0,229,255,.35);
-    animation: pop 0.35s ease;
-}
-
-@keyframes pop{
-    from{opacity:0;transform:translate(-50%,-50%) scale(.7);}
-    to{opacity:1;transform:translate(-50%,-50%) scale(1);}
+width:100%;
+border-radius:14px;
+font-size:20px;
+padding:14px;
+background:linear-gradient(90deg,#06b6d4,#8b5cf6);
+color:white;
+border:none;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# UI
-st.markdown(
-    '<div class="title">📩 SPAM DETECTOR</div>',
-    unsafe_allow_html=True
-)
+# MAIN SCREEN
+st.markdown('<div class="title">📩 SPAM DETECTOR</div>', unsafe_allow_html=True)
 
 st.markdown(
-    f'<div class="acc">🎯 Accuracy: {accuracy*100:.2f}%</div>',
+    f'<div class="acc">🎯 Model Accuracy: {accuracy*100:.2f}%</div>',
     unsafe_allow_html=True
 )
 
 message = st.text_area(
     "✍️ Enter your message:",
-    height=200,
+    height=180,
     placeholder="Type your email or SMS here..."
 )
 
@@ -108,16 +91,28 @@ if st.button("🚀 Check Message"):
         pred = model.predict(vectorizer.transform([message]))[0]
 
         if pred == 1:
-            st.markdown("""
-            <div class="popup">
-            <h1>🚨 SPAM MESSAGE</h1>
-            <p>This message looks suspicious.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            st.session_state.popup_message = "🚨 SPAM MESSAGE DETECTED"
         else:
-            st.markdown("""
-            <div class="popup">
-            <h1>✅ NOT SPAM</h1>
-            <p>This message appears safe.</p>
-            </div>
-            """, unsafe_allow_html=True)
+            st.session_state.popup_message = "✅ NOT SPAM MESSAGE"
+
+        st.session_state.show_popup = True
+
+# POPUP
+if st.session_state.show_popup:
+    with st.modal("Detection Result"):
+        st.markdown(
+            f"<h2 style='text-align:center'>{st.session_state.popup_message}</h2>",
+            unsafe_allow_html=True
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("🔄 Check Another"):
+                st.session_state.show_popup = False
+                st.rerun()
+
+        with col2:
+            if st.button("🏠 Home / Exit"):
+                st.session_state.show_popup = False
+                st.rerun()
